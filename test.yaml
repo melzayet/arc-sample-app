@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: vote-back-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote-back-test
+  template:
+    metadata:
+      labels:
+        app: vote-back-test
+    spec:
+      containers:
+      - name: vote-back-test
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: vote-front-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote-front-test
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5 
+  template:
+    metadata:
+      labels:
+        app: vote-front-test
+    spec:
+      containers:
+      - name: azure-vote-front
+        image: melzayet/arc-demo-app:v0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+        env:
+        - name: REDIS
+          value: vote-back-test
+        - name: TITLE
+          value: "renewed vote App"
+        - name: VOTE1VALUE
+          value: lions
+        - name: VOTE2VALUE
+          value: dogs
+---
+apiVersion: v1
+kind: Service
+metadata:
+    namespace: test
+    name: vote-back-test
+    labels:
+        name: vote-back-test
+spec:
+    ports:
+    - port: 6379
+    selector:
+        app: vote-back-test
+---
+apiVersion: v1
+kind: Service
+metadata:
+    namespace: test
+    name: azure-vote-test
+    labels:
+        name: azure-vote-test
+spec:
+    type: LoadBalancer
+    ports:
+    - port: 80
+    selector:
+        app: vote-front-test
+        
