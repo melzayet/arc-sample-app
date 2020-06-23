@@ -49,11 +49,11 @@ jobs:
         run: docker build . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into registry
-        run: docker login docker.pkg.github.com -u ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password--stdin
 
       - name: Push image
         run: |
-          IMAGE_ID=melzayet/$IMAGE_NAME
+          IMAGE_ID="melzayet/$IMAGE_NAME"
           
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
